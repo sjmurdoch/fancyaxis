@@ -1,4 +1,42 @@
+##     fancyaxis: Draw axis which shows minimum, maximum, quartiles
+##                 and mean
+##
+##     Copyright (C) 2005 Steven J. Murdoch <http://www.cl.cam.ac.uk/users/sjm217/>
+##
+##     This program is free software; you can redistribute it and/or modify
+##     it under the terms of the GNU General Public License as published by
+##     the Free Software Foundation; either version 2 of the License, or
+##     (at your option) any later version.
+##
+##     This program is distributed in the hope that it will be useful,
+##     but WITHOUT ANY WARRANTY; without even the implied warranty of
+##     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##     GNU General Public License for more details.
+##
+##     You should have received a copy of the GNU General Public License
+##     along with this program; if not, write to the Free Software
+##     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+##     This is very much a work in progress, see the example at the
+##     end of file for usage. It currently does not deal with
+##     logarithmic scales properly.
+##
+##     The design of the graph is based on a scatterplot presented in
+##     "The Visual Display of Quantative Information", Edward Tufte.
+##
+##     $Id:$
+
 fancyaxis <- function(side, summ, mingap=0.5, digits=2) {
+  # side: like axis()
+  # summ: a summary object, for example returned by summary()
+  # mingap: the smallest gap permitted between two tickmarks,
+  #         expressed as a fraction of the default tickmark gap
+  # digits: the number of digits to round minimum and maximum to
+  
+  # TODO:
+  # Deal with case where length(axTicks)<2
+  # Deal with logarithmic axis case
 
   # Get summary information
   amin<-summ[1]
@@ -25,8 +63,7 @@ fancyaxis <- function(side, summ, mingap=0.5, digits=2) {
   numticks<-length(ticks)
   firsttick<-ticks[1]
   lasttick<-ticks[numticks]
-                                        # Check len=0 and len=1 cases
-                                        # Deal with logarithmic case
+
   
   # If max tick will be too close to the last tick, replace it,
   #  otherwise append it
@@ -61,12 +98,16 @@ fancyaxis <- function(side, summ, mingap=0.5, digits=2) {
   # Draw the axis
   par("lend"="square")
 
+  # Used for overwriting the axis line to leave tickmarks
   bg <- par("bg")
   if (bg == "transparent")
     bg <- "white"
-  
+
+  # Draw the axis and tickmarks
   axis(side, ticks, labels=FALSE, col="gray50", lwd=0.05)
+  # Erase the axis
   axis(side, ticks, labels=FALSE, col=bg, tcl = 0, lwd=0.2)
+  # Draw the labels
   axis(side, ticks, labels=labels, tick=FALSE, tcl = 0, lwd=0.2)
 
   # Find out the properties of the side we are doing
@@ -103,9 +144,9 @@ fancyaxis <- function(side, summ, mingap=0.5, digits=2) {
   plotheight=diff(par("usr")[3:4])
 
   # Shift for the q2 and q3 axis from the base (in inches)
-  shift <- par("pin")[1]*0.005*flip
+  shift <- par("pin")[1]*0.003*flip
   # Gap for the median
-  gap <- par("pin")[1]*0.005
+  gap <- par("pin")[1]*0.003
   # Shift for the mean pointer away from the axis
   meanshift <- par("cin")[1]*0.5*flip
 
@@ -123,6 +164,7 @@ fancyaxis <- function(side, summ, mingap=0.5, digits=2) {
   # Position of q2 and q3 axis segments
   offset <- base+shift
 
+  # Stops the lines overrunning
   oldlend <- par(lend = "butt")
   on.exit(par(oldlend))
   
@@ -157,38 +199,78 @@ fancyaxis <- function(side, summ, mingap=0.5, digits=2) {
 
   # Draw the mean
   if (xaxis==0) {
-    points(meanbase, amean, pch=18, cex=0.3, col="red", xpd=TRUE)
+    points(meanbase, amean, pch=18, cex=0.7, col="red", xpd=TRUE)
   } else {
-    points(amean, meanbase, pch=18, cex=0.3, col="red", xpd=TRUE)
+    points(amean, meanbase, pch=18, cex=0.7, col="red", xpd=TRUE)
   }
 }
 
+### Example usage ###
+
+# Background colour
 par("bg"="#fffff0")
 #par("bg"="transparent")
-#png(file="/tmp/faithful.png",width="480",height="320")
-#postscript(file="/tmp/foo.pdf",paper="A4",bg=par("bg"))
+
+# Output device. If outputing to a file, remember to use dev.off() at
+#  the end
+#png(file="/tmp/faithful.png",width=480,height=320,bg=par("bg"))
+#postscript(file="/tmp/faithful.ps",paper="A4",bg=par("bg"))
+#pdf(file="/tmp/faithful.pdf", width=297/25.4, height=210/25.4, bg=par("bg"))
+X11(bg=par("bg"))
+
 #xdata=iris$Petal.Width
 #ydata=iris$Petal.Length
+
 #xdata=cars$speed
 #ydata=cars$dist
+
+# Sample dataset from R
 xdata=faithful$waiting
 ydata=faithful$eruptions*60
+
+# Label event age by a colour in the range (0,0.75)
 colours=(1:length(xdata))/length(xdata)*0.75
+
+# Make axis labels horizontal
 par(las=1)
-plot(xdata,ydata,axes=FALSE,pch=20,main="Old Faithful Eruptions",
+
+# Plot the data
+plot(xdata,ydata,
+     # Omit axes
+     axes=FALSE,
+     pch=20,
+     main="Old Faithful Eruptions",
      xlab="Time till next eruption (min)",
-     ylab="Eruption duration (sec)",
-     xlim=c(40,max(xdata)),
-     ylim=c(94,max(ydata)),
+     ylab="Duration (sec)",
+     # Leave some space for the rug plot
+     xlim=c(41,max(xdata)),
+     ylim=c(70,max(ydata)),
      cex=0.5,
      col=gray(colours))
+
+# Add the axes, passing in the summary to provide quartile and mean
 fancyaxis(1,summary(xdata))
 fancyaxis(2,summary(ydata))
+
+# This data is heavily rounded and there are lots of ties, so use
+#  jitter to show distribution. It is not ideal but will do for
+#  and example
 jx=jitter(xdata,amount=0.4)
 jy=jitter(ydata,amount=0.1)
 
+# Used for overwriting the axis line to leave tickmarks
+bg <- par("bg")
+if (bg == "transparent")
+  bg <- "white"
+
+# Draw the rug for X
 rug(jx,side=1,line=-0.7,tcl=0.3)
-axis(side=1,at=jx, col=par("bg"), tcl=0, line=-0.7, label=FALSE)
+# Remove the baseline
+axis(side=1,at=jx, col=bg, tcl=0, line=-0.7, label=FALSE)
+
+# Similarly for Y
 rug(jy,side=2,line=-0.7,tcl=0.3)
-axis(side=2,at=jy, col=par("bg"), tcl=0, line=-0.7, label=FALSE)
+axis(side=2,at=jy, col=bg, tcl=0, line=-0.7, label=FALSE)
+
+# Use this if outputing to a file
 #dev.off()
