@@ -20,12 +20,14 @@
 
 ##     This is very much a work in progress, see the example at the
 ##     end of file for usage. It currently does not deal with
-##     logarithmic scales properly.
+##     logarithmic scales properly and needs manual tweaking of
+##     several values to suit different data and output device
+##     resolution.
 ##
 ##     The design of the graph is based on a scatterplot presented in
 ##     "The Visual Display of Quantative Information", Edward Tufte.
 ##
-##     $Id:$
+##     $Id$
 
 fancyaxis <- function(side, summ, mingap=0.5, digits=2) {
   # side: like axis()
@@ -39,30 +41,30 @@ fancyaxis <- function(side, summ, mingap=0.5, digits=2) {
   # Deal with logarithmic axis case
 
   # Get summary information
-  amin<-summ[1]
-  aq1<-summ[2]
-  amed<-summ[3]
-  amean<-summ[4]
-  aq3<-summ[5]
-  amax<-summ[6]
+  amin <- summ[1]
+  aq1 <- summ[2]
+  amed <- summ[3]
+  amean <- summ[4]
+  aq3 <- summ[5]
+  amax <- summ[6]
 
   # Calculate default positions of ticks
-  ticks<-axTicks(side)
+  ticks <- axTicks(side)
 
   # Calculate the minimum desired gap between ticks
-  numticks<-length(ticks)
-  axgap<-(ticks[numticks]-ticks[numticks-1])*mingap
+  numticks <- length(ticks)
+  axgap <- (ticks[numticks]-ticks[numticks-1])*mingap
 
   # Trim of any ticks that are outside the range
-  tmax<-round(amax,digits)
-  tmin<-round(amin,2)
-  ticks<-ticks[ticks<=tmax]
-  ticks<-ticks[ticks>=tmin]
+  tmax <- round(amax,digits)
+  tmin <- round(amin,2)
+  ticks <- ticks[ticks<=tmax]
+  ticks <- ticks[ticks>=tmin]
 
   # Get new range of tickmarks
-  numticks<-length(ticks)
-  firsttick<-ticks[1]
-  lasttick<-ticks[numticks]
+  numticks <- length(ticks)
+  firsttick <- ticks[1]
+  lasttick <- ticks[numticks]
 
   
   # If max tick will be too close to the last tick, replace it,
@@ -83,17 +85,17 @@ fancyaxis <- function(side, summ, mingap=0.5, digits=2) {
   # Format the labels. min and max should have as many
   #  trailing zeros they were rounded to, the others
   #  should have the minimum needed to represent the tick marks
-  numticks<-length(ticks)
+  numticks <- length(ticks)
 
   # Min and max
-  lmin=format(ticks[1], nsmall=digits, trim=TRUE)
-  lmax=format(ticks[numticks], nsmall=digits, trim=TRUE)
+  lmin <- format(ticks[1], nsmall=digits, trim=TRUE)
+  lmax <- format(ticks[numticks], nsmall=digits, trim=TRUE)
 
   # The others
-  middle=format(ticks[2:(numticks-1)], trim=TRUE)
+  middle <- format(ticks[2:(numticks-1)], trim=TRUE)
 
   # Combine them
-  labels<-c(lmin,middle,lmax)
+  labels <- c(lmin,middle,lmax)
 
   # Draw the axis
   par("lend"="square")
@@ -140,8 +142,8 @@ fancyaxis <- function(side, summ, mingap=0.5, digits=2) {
   base<-par("usr")[parside]
 
   # Width and height in user units
-  plotwidth=diff(par("usr")[1:2])
-  plotheight=diff(par("usr")[3:4])
+  plotwidth <- diff(par("usr")[1:2])
+  plotheight <- diff(par("usr")[3:4])
 
   # Shift for the q2 and q3 axis from the base (in inches)
   shift <- par("pin")[1]*0.003*flip
@@ -191,10 +193,10 @@ fancyaxis <- function(side, summ, mingap=0.5, digits=2) {
   # Which segment is the mean in?
   if((amean>aq3) || (amean<aq1)) {
     # Mean is in q1/q4, so move relative to base
-    meanbase=base-meanshift
+    meanbase <- base-meanshift
   } else {
     # Mean is in q2/q3, so move relative to shifted base
-    meanbase=offset-meanshift
+    meanbase <- offset-meanshift
   }
 
   # Draw the mean
@@ -225,11 +227,11 @@ X11(bg=par("bg"))
 #ydata=cars$dist
 
 # Sample dataset from R
-xdata=faithful$waiting
-ydata=faithful$eruptions*60
+xdata <- faithful$waiting
+ydata <- faithful$eruptions*60
 
 # Label event age by a colour in the range (0,0.75)
-colours=(1:length(xdata))/length(xdata)*0.75
+colours <- (1:length(xdata))/length(xdata)*0.75
 
 # Make axis labels horizontal
 par(las=1)
@@ -255,8 +257,8 @@ fancyaxis(2,summary(ydata))
 # This data is heavily rounded and there are lots of ties, so use
 #  jitter to show distribution. It is not ideal but will do for
 #  and example
-jx=jitter(xdata,amount=0.4)
-jy=jitter(ydata,amount=0.1)
+jx <- jitter(xdata,amount=0.4)
+jy <- jitter(ydata,amount=0.1)
 
 # Used for overwriting the axis line to leave tickmarks
 bg <- par("bg")
