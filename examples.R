@@ -112,10 +112,25 @@ rugexample <- function() {
   # Sample dataset from R
   xdata <- faithful$waiting
   ydata <- faithful$eruptions*60
-
+  len=length(xdata)
+  
   # Label event age by a colour in the range (0,0.75)
   #colours <- gray((1:length(xdata))/length(xdata)*0.75)
 
+  # Label event with its previous duration
+  lag=ydata[2:len]
+  #lma=max(lag)
+  #lmi=min(lag)
+  #lag=lag-lmi
+  #lag=lag/(lma-lmi)
+  #colours <- gray(c(0,lag))
+  colours <- lag
+  colours[lag>180] <- "red"
+  colours[!(lag>180)] <- "blue"
+
+  xdata=xdata[1:len-1]
+  ydata=ydata[1:len-1]
+  
   # Plot the data
   plot(xdata,ydata,
        # Omit axes
@@ -128,7 +143,7 @@ rugexample <- function() {
        xlim=c(41,max(xdata)),
        ylim=c(70,max(ydata)),
        cex=0.5,
-       col="black")
+       col=colours)
 
   # Add the axes, passing in the summary to provide quartile and mean
   fancyaxis(1,summary(xdata))
@@ -235,7 +250,7 @@ multipleexample <- function() {
        axes=FALSE,
        pch=20,
        # Middle plot, so show title
-       main="Old Faithful Eruptions",
+       main="Old Faithful Eruptions (272 observations)",
        xlab="Time till next eruption (min)",
        # Ommit Y label
        ylab="",
