@@ -87,7 +87,7 @@ minimalrug <- function(x, ...) {
   axis(..., at=x, col=bg, tcl=0, label=FALSE, )
 }
   
-fancyaxis <- function(side, summ, mingap=0.5, digits=2) {
+fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2) {
   # side: like axis()
   # summ: a summary object, for example returned by summary()
   # mingap: the smallest gap permitted between two tickmarks,
@@ -107,7 +107,10 @@ fancyaxis <- function(side, summ, mingap=0.5, digits=2) {
   amax <- summ[6]
 
   # Calculate default positions of ticks
-  ticks <- axTicks(side)
+  if (is.null(at))
+    ticks <- axTicks(side)
+  else
+    ticks <- at
 
   # Calculate the minimum desired gap between ticks
   numticks <- length(ticks)
@@ -370,7 +373,7 @@ stripchartexample <- function() {
   ydata <- faithful$eruptions*60
 
   # Label event age by a colour in the range (0,0.75)
-  colours <- (1:length(xdata))/length(xdata)*0.75
+  #colours <- gray((1:length(xdata))/length(xdata)*0.75)
 
   # Plot the data
   plot(xdata,ydata,
@@ -384,7 +387,7 @@ stripchartexample <- function() {
        xlim=c(41,max(xdata)),
        ylim=c(70,max(ydata)),
        cex=0.5,
-       col=gray(colours))
+       col="black")
 
   # Add the axes, passing in the summary to provide quartile and mean
   fancyaxis(1,summary(xdata))
@@ -410,7 +413,7 @@ rugexample <- function() {
   ydata <- faithful$eruptions*60
 
   # Label event age by a colour in the range (0,0.75)
-  colours <- (1:length(xdata))/length(xdata)*0.75
+  #colours <- gray((1:length(xdata))/length(xdata)*0.75)
 
   # Plot the data
   plot(xdata,ydata,
@@ -424,7 +427,7 @@ rugexample <- function() {
        xlim=c(41,max(xdata)),
        ylim=c(70,max(ydata)),
        cex=0.5,
-       col=gray(colours))
+       col="black")
 
   # Add the axes, passing in the summary to provide quartile and mean
   fancyaxis(1,summary(xdata))
