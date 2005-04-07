@@ -28,7 +28,7 @@
 ##     The design of the graph is based on a scatterplot presented in
 ##     "The Visual Display of Quantitative Information", Edward Tufte.
 ##
-##     $Id: fancyaxis.R 740 2005-04-07 20:08:14Z sjm217 $
+##     $Id$
 
 source("fancyaxis.R")
 
