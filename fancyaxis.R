@@ -30,6 +30,63 @@
 ##
 ##     $Id$
 
+# Add a small amount of noise to a numeric vector, preserving minimum
+# and minimum
+clippedjitter <- function(x, ...) {
+  # x:   numeric to which jitter should be added.
+  # ...: parameters passed to jitter
+  mi <- min(x)
+  ma <- max(x)
+
+  len=length(x)
+
+  # Find a position for the min and max
+  mipos <- ((1:len)[x==mi])[1]
+  mapos <- ((1:len)[x==ma])[1]
+  
+  # The standard jittered data
+  xj <- jitter(x, ...)
+
+  # Find the elements which are outside the limits
+  under <- xj<mi
+  over <- xj>ma
+
+  # Find the distance away from the limit
+  dunder <- mi-xj[under]
+  dover <- xj[over]-ma
+
+  # Reflect over the limit
+  repunder <- dunder+mi
+  repover <- ma-dover
+
+  # Replace out of limit values with the reflected ones
+  xj[under] <- repunder
+  xj[over] <- repover
+  
+  # Replace a jittered min/max with the original min/max
+  xj[mipos] <- mi
+  xj[mapos] <- ma
+  
+  # Return updated array
+  xj
+}
+
+minimalrug <- function(x, ...) {
+  # Rounded ends don't work well with erasing one end
+  oldlend <- par(lend = "square")
+  on.exit(par(oldlend))
+
+  # Used for overwriting the axis line to leave tickmarks
+  bg <- par("bg")
+  if (bg == "transparent")
+    bg <- "white"
+
+  # Draw the rug
+  rug(x, ...)
+  # Remove the baseline
+  axis(..., at=x, col=bg, tcl=0, label=FALSE, )
+}
+  
 fancyaxis <- function(side, summ, mingap=0.5, digits=2) {
   # side: like axis()
   # summ: a summary object, for example returned by summary()
@@ -99,7 +156,8 @@ fancyaxis <- function(side, summ, mingap=0.5, digits=2) {
   labels <- c(lmin,middle,lmax)
 
   # Draw the axis
-  par("lend"="square")
+  oldlend <- par(lend = "square")
+  on.exit(par(oldlend))
 
   # Used for overwriting the axis line to leave tickmarks
   bg <- par("bg")
@@ -154,7 +212,7 @@ fancyaxis <- function(side, summ, mingap=0.5, digits=2) {
   meanshift <- par("cin")[1]*0.5*flip
 
   # Scale lengths so both axes are equal on output device
-  if (xaxis==0) {
+  if (!xaxis) {
     shift <- shift/par("pin")[1]*plotwidth
     meanshift <- meanshift/par("pin")[1]*plotwidth
     gap <- gap/par("pin")[2]*plotheight
@@ -168,29 +226,27 @@ fancyaxis <- function(side, summ, mingap=0.5, digits=2) {
   offset <- base+shift
 
   # Stops the lines overrunning
-  oldlend <- par(lend = "butt")
-  on.exit(par(oldlend))
+  par(lend = "butt")
   
   # Draw q1 and q4 axis segments
-  if (xaxis==0) {
+  if (!xaxis) {
     #     xs,         ys,          Don't clip, Line width, Don't overlap 
     lines(rep(base,2),c(amin,aq1), xpd=TRUE, lwd=0.2)
     lines(rep(base,2),c(aq3,amax), xpd=TRUE, lwd=0.2)
   } else {
     lines(c(amin,aq1),rep(base,2), xpd=TRUE, lwd=0.2)
     lines(c(aq3,amax),rep(base,2), xpd=TRUE, lwd=0.2)
-    
   }
 
   # Draw q2 and q3 axis segments
-  if (xaxis==0) {
+  if (!xaxis) {
     lines(rep(offset,2),c(aq1,amed-gap), xpd=TRUE, lwd=0.2)
     lines(rep(offset,2),c(amed+gap,aq3), xpd=TRUE, lwd=0.2)
   } else {
     lines(c(aq1,amed-gap),rep(offset,2), xpd=TRUE, lwd=0.2)
     lines(c(amed+gap,aq3),rep(offset,2), xpd=TRUE, lwd=0.2)
   }
-
+  
   # Which segment is the mean in?
   if((amean>aq3) || (amean<aq1)) {
     # Mean is in q1/q4, so move relative to base
@@ -201,79 +257,191 @@ fancyaxis <- function(side, summ, mingap=0.5, digits=2) {
   }
 
   # Draw the mean
-  if (xaxis==0) {
+  if (!xaxis) {
     points(meanbase, amean, pch=18, cex=0.7, col="red", xpd=TRUE)
   } else {
     points(amean, meanbase, pch=18, cex=0.7, col="red", xpd=TRUE)
   }
 }
 
+axisstripchart <- function(x, side) {
+  # Find out the properties of the side we are doing
+  parside <-
+    if (side==1){
+      # Does the outside of the plot have larger or smaller vales
+      flip <- 1
+      # Are we on the yaxis
+      yaxis <- FALSE
+      # Relevant index of par("usr")
+      3
+    }
+    else if (side==2) {
+      flip <- 1
+      yaxis <- TRUE
+      1
+    }
+    else if (side==3) {
+      flip <- -1
+      yaxis <- FALSE
+      4
+    }
+    else if (side==4) {
+      flip <- -1
+      yaxis <- TRUE
+      2
+    }
+
+  # Axis position
+  base<-par("usr")[parside]
+  
+  # Width and height in user units
+  plotwidth <- diff(par("usr")[1:2])
+  plotheight <- diff(par("usr")[3:4])
+  
+  # Shift for the q2 and q3 axis from the base (in inches)
+  shift <- par("pin")[1]*0.003*flip
+  # Gap for the median
+  gap <- par("pin")[1]*0.003
+  # Shift for the mean pointer away from the axis
+  meanshift <- par("cin")[1]*0.5*flip
+  # Shift away from the q2 and q3 axis for the stripchart
+  stripshift <- par("cin")[1]*0.2*flip
+  # 
+  
+  # Scale lengths so both axes are equal on output device
+  if (yaxis) {
+    shift <- shift/par("pin")[1]*plotwidth
+    meanshift <- meanshift/par("pin")[1]*plotwidth
+    stripshift <- stripshift/par("pin")[1]*plotwidth
+    gap <- gap/par("pin")[2]*plotheight
+  } else {
+    shift <- shift/par("pin")[2]*plotheight
+    meanshift <- meanshift/par("pin")[2]*plotheight
+    stripshift <- stripshift/par("pin")[2]*plotheight
+    gap <- gap/par("pin")[1]*plotwidth
+  }
+
+  # If vertical, stripchart assumes offset is a factor of character
+  # width, if horizontal, character height (bug?). So correct for this
+  if (yaxis)
+    offset=flip*par("cin")[2]/par("cin")[1]
+  else
+    offset=flip
+
+  par(xpd=TRUE)
+  stripchart(x, method="stack", vertical=yaxis, offset=offset, pch=15,
+             cex=0.1, add=TRUE, at=base+shift+stripshift, col="red")
+}
+                            
 ### Example usage ###
 
-# Background colour
-par("bg"="#fffff0")
-#par("bg"="transparent")
+opendevice <- function() {
+  # Background colour
+  par("bg"="#fffff0")
+  #par("bg"="transparent")
 
-# Output device. If outputing to a file, remember to use dev.off() at
-#  the end
-#png(file="/tmp/faithful.png",width=480,height=320,bg=par("bg"))
-#postscript(file="/tmp/faithful.ps",paper="A4",bg=par("bg"))
-#pdf(file="/tmp/faithful.pdf", width=297/25.4, height=210/25.4, bg=par("bg"))
-X11(bg=par("bg"))
+  # Output device. If outputing to a file, remember to use dev.off() at
+  #  the end
+  #png(file="/tmp/faithful.png",width=480,height=320,bg=par("bg"))
+  #postscript(file="/tmp/faithful.ps",paper="A4",bg=par("bg"))
+  pdf(file="/tmp/faithful.pdf", width=297/25.4, height=210/25.4, bg=par("bg"))
+  #X11(bg=par("bg"))
 
-#xdata=iris$Petal.Width
-#ydata=iris$Petal.Length
+  # Make axis labels horizontal
+  par(las=1)
+}
 
-#xdata=cars$speed
-#ydata=cars$dist
+closedevice <- function() {
+  # Use this if outputing to a file
+  dev.off()
+}
 
-# Sample dataset from R
-xdata <- faithful$waiting
-ydata <- faithful$eruptions*60
+stripchartexample <- function() {
+  opendevice()
 
-# Label event age by a colour in the range (0,0.75)
-colours <- (1:length(xdata))/length(xdata)*0.75
+  #xdata=iris$Petal.Width
+  #ydata=iris$Petal.Length
 
-# Make axis labels horizontal
-par(las=1)
+  #xdata=cars$speed
+  #ydata=cars$dist
 
-# Plot the data
-plot(xdata,ydata,
-     # Omit axes
-     axes=FALSE,
-     pch=20,
-     main="Old Faithful Eruptions",
-     xlab="Time till next eruption (min)",
-     ylab="Duration (sec)",
-     # Leave some space for the rug plot
-     xlim=c(41,max(xdata)),
-     ylim=c(70,max(ydata)),
-     cex=0.5,
-     col=gray(colours))
+  # Sample dataset from R
+  xdata <- faithful$waiting
+  ydata <- faithful$eruptions*60
 
-# Add the axes, passing in the summary to provide quartile and mean
-fancyaxis(1,summary(xdata))
-fancyaxis(2,summary(ydata))
+  # Label event age by a colour in the range (0,0.75)
+  colours <- (1:length(xdata))/length(xdata)*0.75
 
-# This data is heavily rounded and there are lots of ties, so use
-#  jitter to show distribution. It is not ideal but will do for
-#  and example
-jx <- jitter(xdata,amount=0.4)
-jy <- jitter(ydata,amount=0.1)
+  # Plot the data
+  plot(xdata,ydata,
+       # Omit axes
+       axes=FALSE,
+       pch=20,
+       main="Old Faithful Eruptions",
+       xlab="Time till next eruption (min)",
+       ylab="Duration (sec)",
+       # Leave some space for the rug plot
+       xlim=c(41,max(xdata)),
+       ylim=c(70,max(ydata)),
+       cex=0.5,
+       col=gray(colours))
 
-# Used for overwriting the axis line to leave tickmarks
-bg <- par("bg")
-if (bg == "transparent")
-  bg <- "white"
+  # Add the axes, passing in the summary to provide quartile and mean
+  fancyaxis(1,summary(xdata))
+  fancyaxis(2,summary(ydata))
 
-# Draw the rug for X
-rug(jx,side=1,line=-0.7,tcl=0.3)
-# Remove the baseline
-axis(side=1,at=jx, col=bg, tcl=0, line=-0.7, label=FALSE)
+  axisstripchart(xdata, 1)
+  axisstripchart(ydata, 2)
 
-# Similarly for Y
-rug(jy,side=2,line=-0.7,tcl=0.3)
-axis(side=2,at=jy, col=bg, tcl=0, line=-0.7, label=FALSE)
+  closedevice()
+}
 
-# Use this if outputing to a file
-#dev.off()
+rugexample <- function() {
+  opendevice()
+
+  #xdata=iris$Petal.Width
+  #ydata=iris$Petal.Length
+
+  #xdata=cars$speed
+  #ydata=cars$dist
+
+  # Sample dataset from R
+  xdata <- faithful$waiting
+  ydata <- faithful$eruptions*60
+
+  # Label event age by a colour in the range (0,0.75)
+  colours <- (1:length(xdata))/length(xdata)*0.75
+
+  # Plot the data
+  plot(xdata,ydata,
+       # Omit axes
+       axes=FALSE,
+       pch=20,
+       main="Old Faithful Eruptions",
+       xlab="Time till next eruption (min)",
+       ylab="Duration (sec)",
+       # Leave some space for the rug plot
+       xlim=c(41,max(xdata)),
+       ylim=c(70,max(ydata)),
+       cex=0.5,
+       col=gray(colours))
+
+  # Add the axes, passing in the summary to provide quartile and mean
+  fancyaxis(1,summary(xdata))
+  fancyaxis(2,summary(ydata))
+
+  # This data is heavily rounded and there are lots of ties, so use
+  #  jitter to show distribution. It is not ideal but will do for
+  #  and example
+  jx <- clippedjitter(xdata, amount=0.4)
+  jy <- clippedjitter(ydata, amount=0.1)
+
+  # Draw the rug for X
+  minimalrug(jx, side=1, line=-0.7, tcl=0.3)
+  # Draw the rug for Y
+  minimalrug(jy, side=2, line=-0.7, tcl=0.3)
+
+  closedevice()
+}
+
+stripchartexample()
