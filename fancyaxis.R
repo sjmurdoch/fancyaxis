@@ -34,7 +34,8 @@
 # and minimum
 clippedjitter <- function(x, ...) {
   # x:   numeric to which jitter should be added.
-  # ...: parameters passed to jitter
+  # ...: parameters passed to jitter()
+  
   mi <- min(x)
   ma <- max(x)
 
@@ -71,7 +72,11 @@ clippedjitter <- function(x, ...) {
   xj
 }
 
+# Draw a rug plot, but ommit the baseline (actually, draw over it
 minimalrug <- function(x, ...) {
+  # x:   a numeric vector
+  # ...: parameters passed to rug()
+  
   # Rounded ends don't work well with erasing one end
   oldlend <- par(lend = "square")
   on.exit(par(oldlend))
@@ -83,11 +88,13 @@ minimalrug <- function(x, ...) {
 
   # Draw the rug
   rug(x, ...)
-  # Remove the baseline
-  axis(..., at=x, col=bg, tcl=0, label=FALSE, )
+  # Remove the baseline (... is put first to allow other the other
+  #  parameters to override it)
+  axis(..., at=x, col=bg, tcl=0, label=FALSE)
 }
   
-fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2) {
+fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
+                      shiftfac=0.003, gapfac=0.003) {
   # side: like axis()
   # summ: a summary object, for example returned by summary()
   # mingap: the smallest gap permitted between two tickmarks,
@@ -208,9 +215,9 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2) {
   plotheight <- diff(par("usr")[3:4])
 
   # Shift for the q2 and q3 axis from the base (in inches)
-  shift <- par("pin")[1]*0.003*flip
+  shift <- par("pin")[1]*shiftfac*flip
   # Gap for the median
-  gap <- par("pin")[1]*0.003
+  gap <- par("pin")[1]*gapfac
   # Shift for the mean pointer away from the axis
   meanshift <- par("cin")[1]*0.5*flip
 
@@ -267,7 +274,11 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2) {
   }
 }
 
-axisstripchart <- function(x, side) {
+# Draw a stripchart on an axis, showing marginal frequency
+axisstripchart <- function(x, side, sshift=0.2) {
+  # x:    the data from which the plots are to be produced.
+  # side: as in axis()
+  
   # Find out the properties of the side we are doing
   parside <-
     if (side==1){
@@ -308,8 +319,7 @@ axisstripchart <- function(x, side) {
   # Shift for the mean pointer away from the axis
   meanshift <- par("cin")[1]*0.5*flip
   # Shift away from the q2 and q3 axis for the stripchart
-  stripshift <- par("cin")[1]*0.2*flip
-  # 
+  stripshift <- par("cin")[1]*sshift*flip
   
   # Scale lengths so both axes are equal on output device
   if (yaxis) {
@@ -331,120 +341,10 @@ axisstripchart <- function(x, side) {
   else
     offset=flip
 
-  par(xpd=TRUE)
+  # Don't clip the chart
+  oldxpd <- par(xpd = TRUE)
+  on.exit(par(oldxpd))
+  
   stripchart(x, method="stack", vertical=yaxis, offset=offset, pch=15,
              cex=0.1, add=TRUE, at=base+shift+stripshift, col="red")
 }
-                            
-### Example usage ###
-
-opendevice <- function() {
-  # Background colour
-  par("bg"="#fffff0")
-  #par("bg"="transparent")
-
-  # Output device. If outputing to a file, remember to use dev.off() at
-  #  the end
-  #png(file="/tmp/faithful.png",width=480,height=320,bg=par("bg"))
-  #postscript(file="/tmp/faithful.ps",paper="A4",bg=par("bg"))
-  pdf(file="/tmp/faithful.pdf", width=297/25.4, height=210/25.4, bg=par("bg"))
-  #X11(bg=par("bg"))
-
-  # Make axis labels horizontal
-  par(las=1)
-}
-
-closedevice <- function() {
-  # Use this if outputing to a file
-  dev.off()
-}
-
-stripchartexample <- function() {
-  opendevice()
-
-  #xdata=iris$Petal.Width
-  #ydata=iris$Petal.Length
-
-  #xdata=cars$speed
-  #ydata=cars$dist
-
-  # Sample dataset from R
-  xdata <- faithful$waiting
-  ydata <- faithful$eruptions*60
-
-  # Label event age by a colour in the range (0,0.75)
-  #colours <- gray((1:length(xdata))/length(xdata)*0.75)
-
-  # Plot the data
-  plot(xdata,ydata,
-       # Omit axes
-       axes=FALSE,
-       pch=20,
-       main="Old Faithful Eruptions",
-       xlab="Time till next eruption (min)",
-       ylab="Duration (sec)",
-       # Leave some space for the rug plot
-       xlim=c(41,max(xdata)),
-       ylim=c(70,max(ydata)),
-       cex=0.5,
-       col="black")
-
-  # Add the axes, passing in the summary to provide quartile and mean
-  fancyaxis(1,summary(xdata))
-  fancyaxis(2,summary(ydata))
-
-  axisstripchart(xdata, 1)
-  axisstripchart(ydata, 2)
-
-  closedevice()
-}
-
-rugexample <- function() {
-  opendevice()
-
-  #xdata=iris$Petal.Width
-  #ydata=iris$Petal.Length
-
-  #xdata=cars$speed
-  #ydata=cars$dist
-
-  # Sample dataset from R
-  xdata <- faithful$waiting
-  ydata <- faithful$eruptions*60
-
-  # Label event age by a colour in the range (0,0.75)
-  #colours <- gray((1:length(xdata))/length(xdata)*0.75)
-
-  # Plot the data
-  plot(xdata,ydata,
-       # Omit axes
-       axes=FALSE,
-       pch=20,
-       main="Old Faithful Eruptions",
-       xlab="Time till next eruption (min)",
-       ylab="Duration (sec)",
-       # Leave some space for the rug plot
-       xlim=c(41,max(xdata)),
-       ylim=c(70,max(ydata)),
-       cex=0.5,
-       col="black")
-
-  # Add the axes, passing in the summary to provide quartile and mean
-  fancyaxis(1,summary(xdata))
-  fancyaxis(2,summary(ydata))
-
-  # This data is heavily rounded and there are lots of ties, so use
-  #  jitter to show distribution. It is not ideal but will do for
-  #  and example
-  jx <- clippedjitter(xdata, amount=0.4)
-  jy <- clippedjitter(ydata, amount=0.1)
-
-  # Draw the rug for X
-  minimalrug(jx, side=1, line=-0.7, tcl=0.3)
-  # Draw the rug for Y
-  minimalrug(jy, side=2, line=-0.7, tcl=0.3)
-
-  closedevice()
-}
-
-stripchartexample()
