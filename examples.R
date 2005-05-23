@@ -118,18 +118,18 @@ rugexample <- function() {
   #colours <- gray((1:length(xdata))/length(xdata)*0.75)
 
   # Label event with its previous duration
-  lag=ydata[2:len]
+  lag=ydata[1:len-1]
   #lma=max(lag)
   #lmi=min(lag)
   #lag=lag-lmi
   #lag=lag/(lma-lmi)
   #colours <- gray(c(0,lag))
   colours <- lag
-  colours[lag>180] <- "red"
-  colours[!(lag>180)] <- "blue"
+  colours[lag>=180] <- "red"
+  colours[!(lag>=180)] <- "blue"
 
-  xdata=xdata[1:len-1]
-  ydata=ydata[1:len-1]
+  xdata=xdata[2:len]
+  ydata=ydata[2:len]
   
   # Plot the data
   plot(xdata,ydata,
