@@ -27,6 +27,7 @@
 ##
 ##     The design of the graph is based on a scatterplot presented in
 ##     "The Visual Display of Quantitative Information", Edward Tufte.
+##     Thanks to Paul Murrell for assistance with handling the log axes
 ##
 ##     $Id$
 
@@ -97,19 +98,20 @@ minimalrug <- function(x, lwd=0.7, ...) {
 }
   
 fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
-                      shiftfac=0.003, gapfac=0.003, skipend=0) {
+                      shiftfac=0.003, gapfac=0.003) {
   # side: like axis()
   # summ: a summary object, for example returned by summary()
   # mingap: the smallest gap permitted between two tickmarks,
   #         expressed as a fraction of the default tickmark gap
   # digits: the number of digits to round minimum and maximum to
+  # shiftfac: proportion of plot width used to offset the broken axis
+  # gapfac: proportion of plot width used to leave for median gap
   
   # TODO:
   # Deal with case where length(axTicks)<2
   # Deal with logarithmic axis case properly, as axTicks difference
-  #  is not uniform. Also, while the gap should be OK, shift is
-  #  not done yet
-
+  #  is not uniform.
+  
   # Get summary information
   amin <- summ[1]
   aq1 <- summ[2]
@@ -125,8 +127,10 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
       flip <- 1
       # Are we on the xaxis
       xaxis <- TRUE
-      # Is the axis logarithmic
+      # Is this axis logarithmic
       islog <- par("xlog")
+      # Is the other axis logarithmic
+      otherlog <- par("ylog")
       # Relevant index of par("usr")
       3
     }
@@ -134,18 +138,21 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
       flip <- 1
       xaxis <- FALSE
       islog <- par("ylog")
+      otherlog <- par("xlog")
       1
     }
     else if (side==3) {
       flip <- -1
       xaxis <- TRUE
       islog <- par("xlog")
+      otherlog <- par("ylog")
       4
     }
     else if (side==4) {
       flip <- -1
       xaxis <- FALSE
       islog <- par("ylog")
+      otherlog <- par("xlog")
       2
     }
 
@@ -172,7 +179,6 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
   numticks <- length(ticks)
   firsttick <- ticks[1]
   lasttick <- ticks[numticks]
-
   
   # If max tick will be too close to the last tick, replace it,
   #  otherwise append it
@@ -203,10 +209,10 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
   lmax <- format(round(ticks[numticks]), nsmall=digits, trim=TRUE)
 
   # The others
-  middle <- format(ticks[2:(numticks-skipend-1)], trim=TRUE)
+  middle <- format(ticks[2:(numticks-1)], trim=TRUE)
 
   # Combine them
-  labels <- c(lmin,middle,rep(NA, skipend),lmax)
+  labels <- c(lmin,middle,lmax)
 
   # Draw the axis
   oldlend <- par(lend = "square")
@@ -217,8 +223,9 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
   if (bg == "transparent")
     bg <- "white"
 
+  lwd=0.7
   # Draw the axis and tickmarks
-  axis(side, ticks, labels=FALSE, col="gray50", lwd=0.7)
+  axis(side, ticks, labels=FALSE, col="gray50", lwd=lwd)
   # Erase the axis
   overlwd=ceiling(lwd+0.5)
   axis(side, ticks, labels=FALSE, col=bg, tcl = 0, lwd=overlwd)
@@ -241,7 +248,6 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
   meanshift <- par("cin")[1]*0.5*flip
 
   # Scale lengths so both axes are equal on output device
-  #  Thanks to Paul Murrell for assistance with handling the log case
   if (!xaxis) {
     # Y axis
 
@@ -249,17 +255,6 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
     shift <- shift/par("pin")[1]*plotwidth
     meanshift <- meanshift/par("pin")[1]*plotwidth
     gap <- gap/par("pin")[2]*plotheight
-    
-    if (!islog) {
-      # Linear case
-      gapt <- amed + gap
-      gapb <- amed - gap
-    } else {
-      # Log case
-      lmed <- log10(amed)
-      gapt <- 10^(lmed + gap)
-      gapb <- 10^(lmed - gap)
-    }
   } else {
     # X axis
 
@@ -267,28 +262,44 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
     shift <- shift/par("pin")[2]*plotheight
     meanshift <- meanshift/par("pin")[2]*plotheight
     gap <- gap/par("pin")[1]*plotwidth
-    
-    if (!islog) {
-      # Linear case
-      gapt <- amed + gap
-      gapb <- amed - gap
-    } else {
-      # Log case
-      lmed <- log10(amed)
-      gapt <- 10^(lmed + gap)
-      gapb <- 10^(lmed - gap)
-    }
+  }
+
+  if (islog) {
+    # Log case on this axis (affects gap)
+    lmed <- log10(amed)
+    gapt <- 10^(lmed + gap)
+    gapb <- 10^(lmed - gap)
+  } else {
+    # Linear case on this axis
+    gapt <- amed + gap
+    gapb <- amed - gap
   }
 
   # Position of q2 and q3 axis segments
-  offset <- base+shift
+  offset <- base + shift
+
+  # Which segment is the mean in?
+  if((amean>aq3) || (amean<aq1)) {
+    # Mean is in q1/q4, so move relative to base
+    meanbase <- base - meanshift
+  } else {
+    # Mean is in q2/q3, so move relative to shifted base
+    meanbase <- offset - meanshift
+  }
+
+  if (otherlog) {
+    # Log case on the other axis (affects shift, base, meanshift)
+    meanbase <- 10^meanbase
+    offset <- 10^offset
+    base <- 10^base
+  }
 
   # Stops the lines overrunning
   par(lend = "butt")
 
   # Line width for axis lines
   lwd=1
-  
+
   # Draw q1 and q4 axis segments
   if (!xaxis) {
     #     xs,         ys,          Don't clip, Line width, Don't overlap 
@@ -308,14 +319,6 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
     lines(c(gapt,aq3),rep(offset,2), xpd=TRUE, lwd=lwd)
   }
   
-  # Which segment is the mean in?
-  if((amean>aq3) || (amean<aq1)) {
-    # Mean is in q1/q4, so move relative to base
-    meanbase <- base-meanshift
-  } else {
-    # Mean is in q2/q3, so move relative to shifted base
-    meanbase <- offset-meanshift
-  }
 
   # Draw the mean
   if (!xaxis) {
@@ -326,6 +329,7 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
 }
 
 # Draw a stripchart on an axis, showing marginal frequency
+# TODO: Does not handle log axes well
 axisstripchart <- function(x, side, sshift=0.2) {
   # x:    the data from which the plots are to be produced.
   # side: as in axis()
