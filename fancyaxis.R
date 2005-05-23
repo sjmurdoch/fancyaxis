@@ -79,7 +79,7 @@ minimalrug <- function(x, lwd=0.7, ...) {
   # ...: parameters passed to rug()
   
   # Rounded ends don't work well with erasing one end
-  oldlend <- par(lend = "square")
+  oldlend <- par(lend = "butt")
   on.exit(par(oldlend))
 
   # Used for overwriting the axis line to leave tickmarks
@@ -169,12 +169,6 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
   else
     axgap <- (ticks[numticks]-ticks[numticks-1])*mingap
 
-  # Trim of any ticks that are outside the range
-  tmax <- round(amax,digits)
-  tmin <- round(amin,2)
-  ticks <- ticks[ticks<=tmax]
-  ticks <- ticks[ticks>=tmin]
-
   # Get new range of tickmarks
   numticks <- length(ticks)
   firsttick <- ticks[1]
@@ -182,18 +176,18 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
   
   # If max tick will be too close to the last tick, replace it,
   #  otherwise append it
-  if (islog && (log10(tmax) - log10(lasttick) < axgap)) {
+  if (islog && (log10(amax) - log10(lasttick) < axgap)) {
     ticks[numticks]<-amax
-  } else if (tmax - lasttick < axgap) {
+  } else if (amax - lasttick < axgap) {
     ticks[numticks]<-amax	
   } else {	
     ticks<-c(ticks,amax)
   }
   
   # Similarly for first tick
-  if (islog && (abs(log10(tmin)-log10(firsttick)) < axgap)) {
+  if (islog && (abs(log10(amin)-log10(firsttick)) < axgap)) {
     ticks[1]<-amin	
-  } else if (abs(tmin-firsttick) < axgap) {
+  } else if (abs(amin-firsttick) < axgap) {
     ticks[1]<-amin	
   } else {	
     ticks<-c(amin, ticks)
@@ -215,7 +209,7 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
   labels <- c(lmin,middle,lmax)
 
   # Draw the axis
-  oldlend <- par(lend = "square")
+  oldlend <- par(lend = "butt")
   on.exit(par(oldlend))
 
   # Used for overwriting the axis line to leave tickmarks
@@ -227,7 +221,7 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
   # Draw the axis and tickmarks
   axis(side, ticks, labels=FALSE, col="gray50", lwd=lwd)
   # Erase the axis
-  overlwd=ceiling(lwd+0.5)
+  overlwd=1
   axis(side, ticks, labels=FALSE, col=bg, tcl = 0, lwd=overlwd)
   # Draw the labels
   axis(side, ticks, labels=labels, tick=FALSE)
@@ -330,7 +324,7 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
 
 # Draw a stripchart on an axis, showing marginal frequency
 # TODO: Does not handle log axes well
-axisstripchart <- function(x, side, sshift=0.2) {
+axisstripchart <- function(x, side, sshift=0.3) {
   # x:    the data from which the plots are to be produced.
   # side: as in axis()
   

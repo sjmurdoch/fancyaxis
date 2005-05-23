@@ -43,10 +43,10 @@ opendevice <- function() {
   #postscript(file="/tmp/faithful.ps",paper="A4",bg=par("bg"))
 
   # A4 paper
-  #pdf(file="/tmp/faithful.pdf", width=297/25.4, height=210/25.4, bg=par("bg"))
+  pdf(file="/tmp/faithful.pdf", width=297/25.4, height=210/25.4, bg=par("bg"))
 
   # Wider paper, used for the small multiple graph
-  pdf(file="/tmp/faithful.pdf", width=297/25.4*1.5, height=210/25.4/2, bg=par("bg"))
+  #pdf(file="/tmp/faithful.pdf", width=297/25.4*1.5, height=210/25.4/2, bg=par("bg"))
 
   #X11(bg=par("bg"))
 
@@ -90,8 +90,8 @@ stripchartexample <- function() {
        col="black")
 
   # Add the axes, passing in the summary to provide quartile and mean
-  fancyaxis(1,summary(xdata))
-  fancyaxis(2,summary(ydata))
+  fancyaxis(1,summary(xdata), digits=0)
+  fancyaxis(2,summary(ydata), digits=0)
 
   # Add the stripcharts
   axisstripchart(xdata, 1)
@@ -164,7 +164,7 @@ rugexample <- function() {
 }
 
 pairexample <- function(){
-  opendevice()
+  #opendevice()
 
   # Split the screen in two columns
   split.screen(c(1,2))
@@ -179,11 +179,11 @@ pairexample <- function(){
 
   # Tidy up
   close.screen(all = TRUE)
-  closedevice()
+  #closedevice()
 }
 
 multipleexample <- function() {
-  opendevice()
+  #opendevice()
 
   xdata <- faithful$waiting
   ydata <- faithful$eruptions*60
@@ -250,7 +250,7 @@ multipleexample <- function() {
        axes=FALSE,
        pch=20,
        # Middle plot, so show title
-       main="Old Faithful Eruptions (272 observations)",
+       main="",
        xlab="Time till next eruption (min)",
        # Ommit Y label
        ylab="",
@@ -259,6 +259,7 @@ multipleexample <- function() {
        ylim=c(70,max(ydata)),
        cex=0.5,
        col="black")
+  title("Old Faithful Eruptions (272 observations)", xpd=NA)
   fancyaxis(1,summary(x),digits=0,shiftfac=0.01, gapfac=0.01)
   fancyaxis(2,summary(y),digits=0,shiftfac=0.01, gapfac=0.01)
   axisstripchart(x, 1, sshift=0.4)
@@ -310,5 +311,5 @@ multipleexample <- function() {
 
   # Cleanup
   close.screen(all = TRUE)
-  closedevice()
+  #closedevice()
 }  
