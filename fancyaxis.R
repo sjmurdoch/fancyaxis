@@ -73,7 +73,7 @@ clippedjitter <- function(x, ...) {
 }
 
 # Draw a rug plot, but ommit the baseline (actually, draw over it
-minimalrug <- function(x, ...) {
+minimalrug <- function(x, lwd=0.7, ...) {
   # x:   a numeric vector
   # ...: parameters passed to rug()
   
@@ -88,13 +88,16 @@ minimalrug <- function(x, ...) {
 
   # Draw the rug
   rug(x, ...)
+  # Acrobat shows "shadows" around a line erased with a line
+  #  of similar width, so use a thicker line
+  overlwd=ceiling(lwd+0.5)
   # Remove the baseline (... is put first to allow other the other
   #  parameters to override it)
-  axis(..., at=x, col=bg, tcl=0, label=FALSE)
+  axis(..., at=x, col=bg, tcl=0, label=FALSE, overlwd)
 }
   
 fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
-                      shiftfac=0.003, gapfac=0.003) {
+                      shiftfac=0.003, gapfac=0.003, skipend=0) {
   # side: like axis()
   # summ: a summary object, for example returned by summary()
   # mingap: the smallest gap permitted between two tickmarks,
@@ -103,7 +106,9 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
   
   # TODO:
   # Deal with case where length(axTicks)<2
-  # Deal with logarithmic axis case
+  # Deal with logarithmic axis case properly, as axTicks difference
+  #  is not uniform. Also, while the gap should be OK, shift is
+  #  not done yet
 
   # Get summary information
   amin <- summ[1]
@@ -113,6 +118,37 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
   aq3 <- summ[5]
   amax <- summ[6]
 
+  # Find out the properties of the side we are doing
+  parside <-
+    if (side==1){
+      # Does the outside of the plot have larger or smaller vales
+      flip <- 1
+      # Are we on the xaxis
+      xaxis <- TRUE
+      # Is the axis logarithmic
+      islog <- par("xlog")
+      # Relevant index of par("usr")
+      3
+    }
+    else if (side==2) {
+      flip <- 1
+      xaxis <- FALSE
+      islog <- par("ylog")
+      1
+    }
+    else if (side==3) {
+      flip <- -1
+      xaxis <- TRUE
+      islog <- par("xlog")
+      4
+    }
+    else if (side==4) {
+      flip <- -1
+      xaxis <- FALSE
+      islog <- par("ylog")
+      2
+    }
+
   # Calculate default positions of ticks
   if (is.null(at))
     ticks <- axTicks(side)
@@ -121,7 +157,10 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
 
   # Calculate the minimum desired gap between ticks
   numticks <- length(ticks)
-  axgap <- (ticks[numticks]-ticks[numticks-1])*mingap
+  if (islog)
+    axgap <- (log10(ticks[numticks])-log10(ticks[numticks-1]))*mingap
+  else
+    axgap <- (ticks[numticks]-ticks[numticks-1])*mingap
 
   # Trim of any ticks that are outside the range
   tmax <- round(amax,digits)
@@ -137,17 +176,21 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
   
   # If max tick will be too close to the last tick, replace it,
   #  otherwise append it
-  if (tmax - lasttick < axgap) {
-    ticks[numticks]<-tmax	
+  if (islog && (log10(tmax) - log10(lasttick) < axgap)) {
+    ticks[numticks]<-amax
+  } else if (tmax - lasttick < axgap) {
+    ticks[numticks]<-amax	
   } else {	
-    ticks<-c(ticks,tmax)
+    ticks<-c(ticks,amax)
   }
   
   # Similarly for first tick
-  if (abs(tmin-firsttick) < axgap) {
-    ticks[1]<-tmin	
+  if (islog && (abs(log10(tmin)-log10(firsttick)) < axgap)) {
+    ticks[1]<-amin	
+  } else if (abs(tmin-firsttick) < axgap) {
+    ticks[1]<-amin	
   } else {	
-    ticks<-c(tmin, ticks)
+    ticks<-c(amin, ticks)
   }
 
   # Format the labels. min and max should have as many
@@ -156,14 +199,14 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
   numticks <- length(ticks)
 
   # Min and max
-  lmin <- format(ticks[1], nsmall=digits, trim=TRUE)
-  lmax <- format(ticks[numticks], nsmall=digits, trim=TRUE)
+  lmin <- format(round(ticks[1],digits), nsmall=digits, trim=TRUE)
+  lmax <- format(round(ticks[numticks]), nsmall=digits, trim=TRUE)
 
   # The others
-  middle <- format(ticks[2:(numticks-1)], trim=TRUE)
+  middle <- format(ticks[2:(numticks-skipend-1)], trim=TRUE)
 
   # Combine them
-  labels <- c(lmin,middle,lmax)
+  labels <- c(lmin,middle,rep(NA, skipend),lmax)
 
   # Draw the axis
   oldlend <- par(lend = "square")
@@ -175,37 +218,12 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
     bg <- "white"
 
   # Draw the axis and tickmarks
-  axis(side, ticks, labels=FALSE, col="gray50", lwd=0.05)
+  axis(side, ticks, labels=FALSE, col="gray50", lwd=0.7)
   # Erase the axis
-  axis(side, ticks, labels=FALSE, col=bg, tcl = 0, lwd=0.2)
+  overlwd=ceiling(lwd+0.5)
+  axis(side, ticks, labels=FALSE, col=bg, tcl = 0, lwd=overlwd)
   # Draw the labels
-  axis(side, ticks, labels=labels, tick=FALSE, tcl = 0, lwd=0.2)
-
-  # Find out the properties of the side we are doing
-  parside <-
-    if (side==1){
-      # Does the outside of the plot have larger or smaller vales
-      flip <- 1
-      # Are we on the xaxis
-      xaxis <- TRUE
-      # Relevant index of par("usr")
-      3
-    }
-    else if (side==2) {
-      flip <- 1
-      xaxis <- FALSE
-      1
-    }
-    else if (side==3) {
-      flip <- -1
-      xaxis <- TRUE
-      4
-    }
-    else if (side==4) {
-      flip <- -1
-      xaxis <- FALSE
-      2
-    }
+  axis(side, ticks, labels=labels, tick=FALSE)
 
   # Axis position
   base<-par("usr")[parside]
@@ -218,18 +236,48 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
   shift <- par("pin")[1]*shiftfac*flip
   # Gap for the median
   gap <- par("pin")[1]*gapfac
+  
   # Shift for the mean pointer away from the axis
   meanshift <- par("cin")[1]*0.5*flip
 
   # Scale lengths so both axes are equal on output device
+  #  Thanks to Paul Murrell for assistance with handling the log case
   if (!xaxis) {
+    # Y axis
+
+    # Convert inches into user units
     shift <- shift/par("pin")[1]*plotwidth
     meanshift <- meanshift/par("pin")[1]*plotwidth
     gap <- gap/par("pin")[2]*plotheight
+    
+    if (!islog) {
+      # Linear case
+      gapt <- amed + gap
+      gapb <- amed - gap
+    } else {
+      # Log case
+      lmed <- log10(amed)
+      gapt <- 10^(lmed + gap)
+      gapb <- 10^(lmed - gap)
+    }
   } else {
+    # X axis
+
+    # Convert inches into user units
     shift <- shift/par("pin")[2]*plotheight
     meanshift <- meanshift/par("pin")[2]*plotheight
     gap <- gap/par("pin")[1]*plotwidth
+    
+    if (!islog) {
+      # Linear case
+      gapt <- amed + gap
+      gapb <- amed - gap
+    } else {
+      # Log case
+      lmed <- log10(amed)
+      gapt <- 10^(lmed + gap)
+      gapb <- 10^(lmed - gap)
+    }
   }
 
   # Position of q2 and q3 axis segments
@@ -237,24 +285,27 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
 
   # Stops the lines overrunning
   par(lend = "butt")
+
+  # Line width for axis lines
+  lwd=1
   
   # Draw q1 and q4 axis segments
   if (!xaxis) {
     #     xs,         ys,          Don't clip, Line width, Don't overlap 
-    lines(rep(base,2),c(amin,aq1), xpd=TRUE, lwd=0.2)
-    lines(rep(base,2),c(aq3,amax), xpd=TRUE, lwd=0.2)
+    lines(rep(base,2),c(amin,aq1), xpd=TRUE, lwd=lwd)
+    lines(rep(base,2),c(aq3,amax), xpd=TRUE, lwd=lwd)
   } else {
-    lines(c(amin,aq1),rep(base,2), xpd=TRUE, lwd=0.2)
-    lines(c(aq3,amax),rep(base,2), xpd=TRUE, lwd=0.2)
+    lines(c(amin,aq1),rep(base,2), xpd=TRUE, lwd=lwd)
+    lines(c(aq3,amax),rep(base,2), xpd=TRUE, lwd=lwd)
   }
 
   # Draw q2 and q3 axis segments
   if (!xaxis) {
-    lines(rep(offset,2),c(aq1,amed-gap), xpd=TRUE, lwd=0.2)
-    lines(rep(offset,2),c(amed+gap,aq3), xpd=TRUE, lwd=0.2)
+    lines(rep(offset,2),c(aq1,gapb), xpd=TRUE, lwd=lwd)
+    lines(rep(offset,2),c(gapt,aq3), xpd=TRUE, lwd=lwd)
   } else {
-    lines(c(aq1,amed-gap),rep(offset,2), xpd=TRUE, lwd=0.2)
-    lines(c(amed+gap,aq3),rep(offset,2), xpd=TRUE, lwd=0.2)
+    lines(c(aq1,gapb),rep(offset,2), xpd=TRUE, lwd=lwd)
+    lines(c(gapt,aq3),rep(offset,2), xpd=TRUE, lwd=lwd)
   }
   
   # Which segment is the mean in?
