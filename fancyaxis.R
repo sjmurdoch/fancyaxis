@@ -74,7 +74,7 @@ clippedjitter <- function(x, ...) {
 }
 
 # Draw a rug plot, but ommit the baseline (actually, draw over it
-minimalrug <- function(x, lwd=0.7, ...) {
+minimalrug <- function(x, lwd=0.7, tcl=0.3, ...) {
   # x:   a numeric vector
   # ...: parameters passed to rug()
   
@@ -88,13 +88,13 @@ minimalrug <- function(x, lwd=0.7, ...) {
     bg <- "white"
 
   # Draw the rug
-  rug(x, ...)
+  rug(x, ticksize=NA, lwd=lwd, ...)
   # Acrobat shows "shadows" around a line erased with a line
   #  of similar width, so use a thicker line
-  overlwd=ceiling(lwd+0.5)
+  overlwd=1
   # Remove the baseline (... is put first to allow other the other
   #  parameters to override it)
-  axis(..., at=x, col=bg, tcl=0, label=FALSE, overlwd)
+  axis(..., at=x, col=bg, tcl=0, label=FALSE, lwd=overlwd)
 }
   
 fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
@@ -162,6 +162,9 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
   else
     ticks <- at
 
+  # Remove any ticks outside the range
+  ticks <- ticks[(ticks>=amin) & (ticks<=amax)]
+  
   # Calculate the minimum desired gap between ticks
   numticks <- length(ticks)
   if (islog)
@@ -187,7 +190,7 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
   # Similarly for first tick
   if (islog && (abs(log10(amin)-log10(firsttick)) < axgap)) {
     ticks[1]<-amin	
-  } else if (abs(amin-firsttick) < axgap) {
+  } else if (firsttick - amin < axgap) {
     ticks[1]<-amin	
   } else {	
     ticks<-c(amin, ticks)
@@ -395,5 +398,5 @@ axisstripchart <- function(x, side, sshift=0.3) {
   on.exit(par(oldxpd))
   
   stripchart(x, method="stack", vertical=yaxis, offset=offset, pch=15,
-             cex=0.1, add=TRUE, at=base+shift+stripshift, col="red")
+             cex=0.2, add=TRUE, at=base+shift+stripshift, col="red")
 }
