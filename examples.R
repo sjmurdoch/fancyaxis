@@ -18,15 +18,16 @@
 ##     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 ##     This is very much a work in progress and still of alpha
-##     quality. See the example at the end of file for usage. It
-##     currently does not deal with logarithmic scales properly and
-##     needs manual tweaking of several values to suit different data
-##     and output device resolution. Comments and suggestions are
-##     appreciated. My contact details can be found here:
-##        http://www.cl.cam.ac.uk/users/sjm217/     
+##     quality. See the example file for usage. It currently does not
+##     deal with logarithmic scales properly and needs manual tweaking
+##     of several values to suit different data and output device
+##     resolution. Comments and suggestions are appreciated. My
+##     contact details can be found here:
+##       http://www.cl.cam.ac.uk/users/sjm217/#contact
 ##
 ##     The design of the graph is based on a scatterplot presented in
 ##     "The Visual Display of Quantitative Information", Edward Tufte.
+##     Thanks to Paul Murrell for assistance with handling the log axes
 ##
 ##     $Id$
 
