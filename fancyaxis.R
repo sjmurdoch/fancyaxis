@@ -202,8 +202,8 @@ fancyaxis <- function(side, summ, at=NULL, mingap=0.5, digits=2,
   numticks <- length(ticks)
 
   # Min and max
-  lmin <- format(round(ticks[1],digits), nsmall=digits, trim=TRUE)
-  lmax <- format(round(ticks[numticks]), nsmall=digits, trim=TRUE)
+  lmin <- format(round(ticks[1], digits), nsmall=digits, trim=TRUE)
+  lmax <- format(round(ticks[numticks], digits), nsmall=digits, trim=TRUE)
 
   # The others
   middle <- format(ticks[2:(numticks-1)], trim=TRUE)
