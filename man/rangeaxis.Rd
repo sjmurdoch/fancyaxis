@@ -1,151 +1,82 @@
 \name{rangeaxis}
 \alias{rangeaxis}
-%- Also NEED an '\alias' for EACH other topic documented here.
+
 \title{
-%%  ~~function to do ... ~~
+Plot an axis showing the minimum and maximum values
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+Use a data summary to plot an axis labelled with minimum and maximum values, 
+rather than default "pretty" values.
 }
 \usage{
 rangeaxis(side, summ, at = NULL, mingap = 0.5, digits = 2)
 }
-%- maybe also 'usage' for other objects documented here.
+
 \arguments{
   \item{side}{
-%%     ~~Describe \code{side} here~~
+integer specifying the side to place the axis on: 1 - bottom, 2 - left, 3 - top, 4 -right
 }
   \item{summ}{
-%%     ~~Describe \code{summ} here~~
+summary object, as those returned by summary()
 }
   \item{at}{
-%%     ~~Describe \code{at} here~~
+positions of tickmarks if not NULL (default = NULL)
 }
   \item{mingap}{
-%%     ~~Describe \code{mingap} here~~
+the smallest gap permitted between two tickmarks, expressed as a 
+fraction of the default tickmark gap (default = 0.5)
 }
   \item{digits}{
-%%     ~~Describe \code{digits} here~~
+the number of digits to round minimum and maximum to (default = 2)
 }
-}
-\details{
-%%  ~~ If necessary, more details than the description above ~~
-}
-\value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
-}
-\references{
-%% ~put references to the literature/web site here ~
-}
-\author{
-%%  ~~who you are~~
-}
-\note{
-%%  ~~further notes~~
 }
 
-%% ~Make other sections like Warning with \section{Warning }{....} ~
+\value{
+None
+}
+
+\references{
+"The Visual Display of Quantitative Information", 2nd Ed., E. Tufte, 2001. 
+}
+
+\note{
+Code adapted from fancyaxis by Steven J. Murdoch.
+}
+
+\author{
+Peter N. Steinmetz <http://www.steinmetz.org/peter>
+}
 
 \seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
+\code{\link{summary}}, \code{\link{fancyaxis}}
 }
-\examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
 
-## The function is currently defined as
-function (side, summ, at = NULL, mingap = 0.5, digits = 2) 
-{
-    amin <- summ[1]
-    aq1 <- summ[2]
-    amed <- summ[3]
-    amean <- summ[4]
-    aq3 <- summ[5]
-    amax <- summ[6]
-    parside <- if (side == 1) {
-        flip <- 1
-        xaxis <- TRUE
-        islog <- par("xlog")
-        otherlog <- par("ylog")
-        3
-    }
-    else if (side == 2) {
-        flip <- 1
-        xaxis <- FALSE
-        islog <- par("ylog")
-        otherlog <- par("xlog")
-        1
-    }
-    else if (side == 3) {
-        flip <- -1
-        xaxis <- TRUE
-        islog <- par("xlog")
-        otherlog <- par("ylog")
-        4
-    }
-    else if (side == 4) {
-        flip <- -1
-        xaxis <- FALSE
-        islog <- par("ylog")
-        otherlog <- par("xlog")
-        2
-    }
-    if (is.null(at)) 
-        ticks <- axTicks(side)
-    else ticks <- at
-    ticks <- ticks[(ticks >= amin) & (ticks <= amax)]
-    numticks <- length(ticks)
-    if (islog) 
-        axgap <- (log10(ticks[numticks]) - log10(ticks[numticks - 
-            1])) * mingap
-    else axgap <- (ticks[numticks] - ticks[numticks - 1]) * mingap
-    numticks <- length(ticks)
-    firsttick <- ticks[1]
-    lasttick <- ticks[numticks]
-    if (islog && (log10(amax) - log10(lasttick) < axgap)) {
-        ticks[numticks] <- amax
-    }
-    else if (amax - lasttick < axgap) {
-        ticks[numticks] <- amax
-    }
-    else {
-        ticks <- c(ticks, amax)
-    }
-    if (islog && (abs(log10(amin) - log10(firsttick)) < axgap)) {
-        ticks[1] <- amin
-    }
-    else if (firsttick - amin < axgap) {
-        ticks[1] <- amin
-    }
-    else {
-        ticks <- c(amin, ticks)
-    }
-    numticks <- length(ticks)
-    lmin <- format(round(ticks[1], digits), nsmall = digits, 
-        trim = TRUE)
-    lmax <- format(round(ticks[numticks], digits), nsmall = digits, 
-        trim = TRUE)
-    middle <- format(ticks[2:(numticks - 1)], trim = TRUE)
-    labels <- c(lmin, middle, lmax)
-    oldlend <- par(lend = "butt")
-    on.exit(par(oldlend))
-    bg <- par("bg")
-    if (bg == "transparent") 
-        bg <- "white"
-    lwd = 0.7
-    axis(side, ticks, labels = FALSE, col = "gray50", lwd = lwd)
-    overlwd = 1
-    axis(side, ticks, labels = FALSE, col = "black", tcl = 0, 
-        lwd = overlwd)
-    axis(side, ticks, labels = labels, tick = FALSE)
-  }
+\examples{
+	data(faithful)
+  xdata <- faithful$waiting
+  ydata <- faithful$eruptions*60
+  len=length(xdata)
+  
+  xdata=xdata[2:len]
+  ydata=ydata[2:len]
+  len=length(xdata)
+    
+  plot(xdata,ydata,
+       # Omit axes
+       axes=FALSE,
+       pch=20,
+       main=sprintf("Old Faithful Eruptions (%d samples)", len),
+       xlab="Time till next eruption (min)",
+       ylab="Duration (sec)",
+       # Leave some space for the rug plot
+       xlim=c(41,max(xdata)),
+       ylim=c(90,max(ydata)),
+       cex=0.5)
+
+  # Add the axes, passing in the summary to provide quartile and mean
+  rangeaxis(1,summary(xdata))
+  axis(2)
+
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+
+\keyword{ aplot }
