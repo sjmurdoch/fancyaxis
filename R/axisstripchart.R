@@ -1,18 +1,7 @@
+## Draw a stripchart on an axis, showing marginal frequency
+
 ##     Copyright (C) 2005 Steven J. Murdoch <http://www.cl.cam.ac.uk/users/sjm217/>
-##
-##     This program is free software; you can redistribute it and/or modify
-##     it under the terms of the GNU General Public License as published by
-##     the Free Software Foundation; either version 2 of the License, or
-##     (at your option) any later version.
-##
-##     This program is distributed in the hope that it will be useful,
-##     but WITHOUT ANY WARRANTY; without even the implied warranty of
-##     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-##     GNU General Public License for more details.
-##
-##     You should have received a copy of the GNU General Public License
-##     along with this program; if not, write to the Free Software
-##     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##     Permissions at bottom.
 
 ##     This is very much a work in progress and still of alpha
 ##     quality. See the example file for usage. It currently does not
@@ -28,8 +17,6 @@
 ##
 ##     From $Id: fancyaxis.R 6927 2009-03-08 12:49:17Z sjm217 $
 
-# Draw a stripchart on an axis, showing marginal frequency
-# TODO: Does not handle log axes well
 axisstripchart <- function(x, side, sshift=0.3) {
   # x:    the data from which the plots are to be produced.
   # side: as in axis()
@@ -103,3 +90,17 @@ axisstripchart <- function(x, side, sshift=0.3) {
   stripchart(x, method="stack", vertical=yaxis, offset=offset, pch=15,
              cex=0.2, add=TRUE, at=base+shift+stripshift, col="red")
 }
+
+##     This program is free software; you can redistribute it and/or modify
+##     it under the terms of the GNU General Public License as published by
+##     the Free Software Foundation; either version 2 of the License, or
+##     (at your option) any later version.
+##
+##     This program is distributed in the hope that it will be useful,
+##     but WITHOUT ANY WARRANTY; without even the implied warranty of
+##     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##     GNU General Public License for more details.
+##
+##     You should have received a copy of the GNU General Public License
+##     along with this program; if not, write to the Free Software
+##     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
