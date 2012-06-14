@@ -1,0 +1,10 @@
+Package: Fancyaxis
+Version: 0.1
+Date: 2012-06-10
+Title: Functions for drawing scatter-plots and axes inspired by E. Tufte's redesigns.
+Author: Steven J. Murdoch <http://www.cl.cam.ac.uk/users/sjm217/>
+Maintainer: Peter N. Steinmetz <PeterNSteinmetz@steinmetz.org>
+Description: A set of functions for plotting scatterplots and creating 
+  axes which are inspired by E. Tufte's ""The Visual Display of 
+  Quantitative Information"
+License: GPL version 3 or newer
