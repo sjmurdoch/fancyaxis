@@ -16,7 +16,7 @@ clippedjitter(x, ...)
   \item{x}{
 numeric vector to have jitter applied
 }
-  \item{...}{
+  \item{\dots}{
 other arguments passed to the normal jitter function
 }
 }
