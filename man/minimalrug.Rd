@@ -34,7 +34,7 @@ None
 }
 
 \author{
-Steven J. Murdoch <http://www.cl.cam.ac.uk/users/sjm217/>
+Steven J. Murdoch \url{http://www.cl.cam.ac.uk/users/sjm217/}
 }
 
 \note{

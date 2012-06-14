@@ -44,7 +44,7 @@ Code adapted from fancyaxis by Steven J. Murdoch.
 }
 
 \author{
-Peter N. Steinmetz <http://www.steinmetz.org/peter>
+Peter N. Steinmetz \url{http://www.steinmetz.org/peter}
 }
 
 \seealso{

@@ -51,7 +51,7 @@ This is very much a work in progress and still of alpha quality. It currently do
 }
 
 \author{
-Steven J. Murdoch <http://www.cl.cam.ac.uk/users/sjm217/>
+Steven J. Murdoch \url{http://www.cl.cam.ac.uk/users/sjm217/}
 }
 
 \seealso{

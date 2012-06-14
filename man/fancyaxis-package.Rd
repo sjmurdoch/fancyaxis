@@ -23,9 +23,9 @@ One of the primary functions is \code{\link{fancyaxis}} which shows
 statistics concerning the marginal distribution of a variable.
 }
 \author{
-Steven J. Murdoch <http://www.cl.cam.ac.uk/users/sjm217/>
+Steven J. Murdoch \url{http://www.cl.cam.ac.uk/users/sjm217/}
 
-Maintainer: Peter N. Steinmetz <PeterNSteinmetz@steinmetz.org>
+Maintainer: Peter N. Steinmetz \url{www.steinmetz.org/peter}
 }
 \references{
 "The Visual Display of Quantitative Information", 2nd Ed., E. Tufte, 2001. 
