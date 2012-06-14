@@ -1,110 +1,98 @@
 \name{axisstripchart}
 \alias{axisstripchart}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-%%  ~~function to do ... ~~
+Draw a bar plot on an axis.
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+Draws a bar plot on the axis, showing the frequency distribution of the respective variable.
 }
 \usage{
 axisstripchart(x, side, sshift = 0.3)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{
-%%     ~~Describe \code{x} here~~
+numeric vector of data to plot along axis
 }
   \item{side}{
-%%     ~~Describe \code{side} here~~
+side of plot to draw axis on: 1 - bottom, 2 - left, 3 - top, 4 - right
 }
   \item{sshift}{
-%%     ~~Describe \code{sshift} here~~
+amount to shift the stripchart away from the axis (default = 0.3)
 }
-}
-\details{
-%%  ~~ If necessary, more details than the description above ~~
-}
-\value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
-}
-\references{
-%% ~put references to the literature/web site here ~
-}
-\author{
-%%  ~~who you are~~
-}
-\note{
-%%  ~~further notes~~
 }
 
-%% ~Make other sections like Warning with \section{Warning }{....} ~
+\details{
+While clippedjitter() can be used to display density information of a variable with many ties, this is not always ideal, since it hides information about the rounding applied to the data. As an alternative, axisstripchart() draws a bar plot on the axis, showing the frequency distribution of the respective variable.}
+
+\value{
+None
+}
+
+\references{
+"The Visual Display of Quantitative Information", 2nd Ed., E. Tufte, 2001. 
+}
+
+\author{
+Steven J. Murdoch <http://www.cl.cam.ac.uk/users/sjm217/>
+}
+
+\note{
+Does not handle log axes well.
+}
 
 \seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
+\code{\link{clippedjitter}}, \code{\link{stripchart}}
 }
-\examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
 
-## The function is currently defined as
-function (x, side, sshift = 0.3) 
-{
-    parside <- if (side == 1) {
-        flip <- 1
-        yaxis <- FALSE
-        3
-    }
-    else if (side == 2) {
-        flip <- 1
-        yaxis <- TRUE
-        1
-    }
-    else if (side == 3) {
-        flip <- -1
-        yaxis <- FALSE
-        4
-    }
-    else if (side == 4) {
-        flip <- -1
-        yaxis <- TRUE
-        2
-    }
-    base <- par("usr")[parside]
-    plotwidth <- diff(par("usr")[1:2])
-    plotheight <- diff(par("usr")[3:4])
-    shift <- par("pin")[1] * 0.003 * flip
-    gap <- par("pin")[1] * 0.003
-    meanshift <- par("cin")[1] * 0.5 * flip
-    stripshift <- par("cin")[1] * sshift * flip
-    if (yaxis) {
-        shift <- shift/par("pin")[1] * plotwidth
-        meanshift <- meanshift/par("pin")[1] * plotwidth
-        stripshift <- stripshift/par("pin")[1] * plotwidth
-        gap <- gap/par("pin")[2] * plotheight
-    }
-    else {
-        shift <- shift/par("pin")[2] * plotheight
-        meanshift <- meanshift/par("pin")[2] * plotheight
-        stripshift <- stripshift/par("pin")[2] * plotheight
-        gap <- gap/par("pin")[1] * plotwidth
-    }
-    if (yaxis) 
-        offset = flip * par("cin")[2]/par("cin")[1]
-    else offset = flip
-    oldxpd <- par(xpd = TRUE)
-    on.exit(par(oldxpd))
-    stripchart(x, method = "stack", vertical = yaxis, offset = offset, 
-        pch = 15, cex = 0.2, add = TRUE, at = base + shift + 
-            stripshift, col = "red")
-  }
+\examples{
+  data(faithful)
+  xdata <- faithful$waiting
+  ydata <- faithful$eruptions*60
+  len=length(xdata)
+  
+  # Label event with its previous duration
+
+  split=180
+
+  lag=ydata[1:len-1]
+  colours <- lag
+  colours[lag>=split] <- "red"
+  colours[!(lag>=split)] <- "blue"
+
+  xdata=xdata[2:len]
+  ydata=ydata[2:len]
+  len=length(xdata)
+  
+  # Plot the data
+  plot(xdata,ydata,
+       # Omit axes
+       axes=FALSE,
+       pch=20,
+       main=sprintf("Old Faithful Eruptions (%d samples)", len),
+       xlab="Time till next eruption (min)",
+       ylab="Duration (sec)",
+       # Leave some space for the rug plot
+       xlim=c(41,max(xdata)),
+       ylim=c(70,max(ydata)),
+       cex=0.5,
+       col=colours)
+
+  axp=par("xaxp")
+  axp[3] <- axp[3]*2
+  par("xaxp"=axp)
+  
+  # Add the axes, passing in the summary to provide quartile and mean
+  fancyaxis(1,summary(xdata), digits=0)
+  fancyaxis(2,summary(ydata), digits=0)
+
+  # Add the stripcharts
+  axisstripchart(xdata, 1)
+  axisstripchart(ydata, 2)
+
+  lines(c(min(xdata),max(xdata)),c(split,split),lty=2, col="gray50", xpd=FALSE)
+  h=par("cxy")[2]/2
+  points(rep(max(xdata),2),c(split+h,split-h),col=c("red","blue"), pch=20)
+  text(95,split+h, "Previous duration", adj=c(1,0.5))
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+
+\keyword{ aplot }
