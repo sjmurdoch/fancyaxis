@@ -65,7 +65,7 @@ Peter N. Steinmetz <http://www.steinmetz.org/peter>
        # Omit axes
        axes=FALSE,
        pch=20,
-       main=sprintf("Old Faithful Eruptions (%d samples)", len),
+       main=sprintf("Old Faithful Eruptions (\%d samples)", len),
        xlab="Time till next eruption (min)",
        ylab="Duration (sec)",
        # Leave some space for the rug plot

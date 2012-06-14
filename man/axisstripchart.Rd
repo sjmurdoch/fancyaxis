@@ -68,7 +68,7 @@ Does not handle log axes well.
        # Omit axes
        axes=FALSE,
        pch=20,
-       main=sprintf("Old Faithful Eruptions (%d samples)", len),
+       main=paste("Old Faithful Eruptions (",len," samples)",sep=''),
        xlab="Time till next eruption (min)",
        ylab="Duration (sec)",
        # Leave some space for the rug plot
@@ -93,6 +93,7 @@ Does not handle log axes well.
   h=par("cxy")[2]/2
   points(rep(max(xdata),2),c(split+h,split-h),col=c("red","blue"), pch=20)
   text(95,split+h, "Previous duration", adj=c(1,0.5))
+
 }
 
 \keyword{ aplot }
