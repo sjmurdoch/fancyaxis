@@ -1,6 +1,6 @@
-\name{Fancyaxis-package}
-\alias{Fancyaxis-package}
-\alias{Fancyaxis}
+\name{fancyaxis-package}
+\alias{fancyaxis-package}
+\alias{fancyaxis}
 \docType{package}
 \title{
 Functions for drawing scatter-plots and axes inspired by E. Tufte's redesigns.
@@ -12,8 +12,8 @@ A set of functions for plotting scatterplots and creating
 }
 \details{
 \tabular{ll}{
-Package: \tab Fancyaxis\cr
-Version: \tab 0.1\cr
+Package: \tab fancyaxis\cr
+Version: \tab 0.5\cr
 Date: \tab 2012-06-10\cr
 License: \tab GPL version 3 or newer\cr
 Built: \tab R 2.15.0; ; 2012-06-10 16:59:11 UTC; unix\cr
