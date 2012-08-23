@@ -1,21 +1,7 @@
-##     fancyaxis: Draw axis which shows minimum, maximum, quartiles
-##                 and mean
+##     Examples for fancyaxis package.
 ##
 ##     Copyright (C) 2005 Steven J. Murdoch <http://www.cl.cam.ac.uk/users/sjm217/>
-##
-##     This program is free software; you can redistribute it and/or modify
-##     it under the terms of the GNU General Public License as published by
-##     the Free Software Foundation; either version 2 of the License, or
-##     (at your option) any later version.
-##
-##     This program is distributed in the hope that it will be useful,
-##     but WITHOUT ANY WARRANTY; without even the implied warranty of
-##     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-##     GNU General Public License for more details.
-##
-##     You should have received a copy of the GNU General Public License
-##     along with this program; if not, write to the Free Software
-##     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##     Permissions at bottom.
 
 ##     This is very much a work in progress and still of alpha
 ##     quality. See the example file for usage. It currently does not
@@ -29,9 +15,7 @@
 ##     "The Visual Display of Quantitative Information", Edward Tufte.
 ##     Thanks to Paul Murrell for assistance with handling the log axes
 ##
-##     $Id$
-
-source("fancyaxis.R")
+##     $Id: examples.R 1024 2005-06-16 13:36:05Z sjm217 $
 
 opendevice <- function() {
   # Background colour
@@ -44,10 +28,10 @@ opendevice <- function() {
 
   #png(file="/tmp/faithful.png",width=380,height=380,bg=par("bg"))
   
-  postscript(file="/tmp/faithful.ps",paper="A4",bg=par("bg"))
+  #postscript(file="/tmp/faithful.ps",paper="A4",bg=par("bg"))
 
   # A4 paper
-  #pdf(file="/tmp/faithful.pdf", width=297/25.4, height=210/25.4, bg=par("bg"))
+  pdf(file="faithful.pdf", width=297/25.4, height=210/25.4, bg=par("bg"))
 
   # Wider paper, used for the small multiple graph
   #pdf(file="/tmp/faithful.pdf", width=297/25.4*1.5, height=210/25.4/2, bg=par("bg"))
@@ -409,3 +393,17 @@ lagplot <- function() {
   
   closedevice()
 }
+
+##     This program is free software; you can redistribute it and/or modify
+##     it under the terms of the GNU General Public License as published by
+##     the Free Software Foundation; either version 2 of the License, or
+##     (at your option) any later version.
+##
+##     This program is distributed in the hope that it will be useful,
+##     but WITHOUT ANY WARRANTY; without even the implied warranty of
+##     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##     GNU General Public License for more details.
+##
+##     You should have received a copy of the GNU General Public License
+##     along with this program; if not, write to the Free Software
+##     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
